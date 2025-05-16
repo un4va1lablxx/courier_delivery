@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина</title>
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/font-awesome.css">
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=a667dd24-8e5a-417a-8bf9-fedab0b1b11a" type="text/javascript"></script>
+</head>
+<body>
+<!-- Уведомление об успешном заказе -->
+<div th:if="${showSuccessNotification}" class="notification-overlay" id="notificationOverlay">
+    <div class="notification-box" onclick="event.stopPropagation()">
+        <span class="notification-close">×</span>
+        <div class="notification-title">Заказ успешно оформлен!</div>
+        <div class="notification-content">
+            <p>Ваш заказ #<span th:text="${orderId}"></span> принят в обработку.</p>
+            <p th:text="${paymentResult.message}"></p>
+            <p th:if="${paymentMethod == 'CASH'}">Оплата будет произведена при получении</p>
+            <p th:if="${paymentMethod != 'CASH'}">ID транзакции: <span th:text="${paymentResult.transactionId}"></span></p>
+        </div>
+        <div class="notification-buttons">
+            <button class="notification-btn" onclick="closeNotification()">Продолжить покупки</button>
+            <button class="notification-btn" onclick="viewOrderDetails()">Подробности заказа</button>
+        </div>
+    </div>
+</div>
+
+<!-- Блок ошибки оплаты -->
+<div th:if="${showPaymentError}" class="payment-error">
+    <div class="error-box">
+        <h3>Ошибка оплаты</h3>
+        <p th:text="${paymentResult.message}"></p>
+        <button class="btn" onclick="document.querySelector('.payment-error').style.display='none'">
+            Попробовать снова
+        </button>
+    </div>
+</div>
+<!-- Header -->
+<header>
+    <div class="container">
+        <div class="row">
+            <div class="grid_12">
+                <h1 class="logo"><a href="/"><img src="/images/logo.png" alt="FOOD DELIVERY"></a></h1>
+                <nav>
+                    <ul class="sf-menu">
+                        <li><a href="/">ГЛАВНАЯ</a></li>
+                        <li><a href="/menu">МЕНЮ</a></li>
+                        <li class="current"><a href="/cart">КОРЗИНА</a></li>
+                        <li><a href="/contacts">КОНТАКТЫ</a></li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </nav>
+                <hr class="header-border">
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Content -->
+<main>
+    <div class="container">
+        <h2 class="align-center">Ваша корзина</h2>
+        <div class="cart-page-container">
+            <div class="cart-container">
+                <table class="cart-table">
+                    <thead>
+                    <tr>
+                        <th>Блюдо</th>
+                        <th>Цена</th>
+                        <th>Количество</th>
+                        <th>Итого</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody id="cart-items">
+                    <tr th:each="item : ${cartItems}">
+                        <td th:text="${item.product.name}"></td>
+                        <td th:text="${item.product.price} + ' ₽'"></td>
+                        <td th:text="${item.quantity}"></td>
+                        <td th:text="${item.quantity * item.product.price} + ' ₽'"></td>
+                        <td>
+                            <form th:action="@{/cart/removeFromCart}" method="post">
+                                <input type="hidden" name="productId" th:value="${item.product.productId}"/>
+                                <button type="submit">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="delivery-form">
+                <form th:action="@{/cart/checkout}" method="post" id="delivery-form">
+                    <div class="address-input-group">
+                        <label for="address">Адрес доставки:</label>
+                        <div class="address-search">
+                            <input type="text" id="address" name="address" placeholder="Введите адрес">
+                            <button type="button" id="findAddressButton">Найти</button>
+                        </div>
+                    </div>
+                    <div class="payment-method">
+                        <label>Способ оплаты:</label>
+                        <div class="payment-options">
+                            <div class="payment-option">
+                                <input type="radio" id="cash" name="paymentMethod" value="CASH" checked>
+                                <label for="cash">Наличные при получении</label>
+                                <i class="fa fa-money" aria-hidden="true"></i>
+                            </div>
+                            <div class="payment-option">
+                                <input type="radio" id="card" name="paymentMethod" value="CREDIT_CARD">
+                                <label for="card">Кредитная карта</label>
+                                <i class="fa fa-credit-card" aria-hidden="true"></i>
+                            </div>
+                            <div class="payment-option">
+                                <input type="radio" id="online" name="paymentMethod" value="ONLINE">
+                                <label for="online">Онлайн-оплата</label>
+                                <i class="fa fa-globe" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="map"></div>
+                    <input type="hidden" id="map-lat" name="map-lat">
+                    <input type="hidden" id="map-lng" name="map-lng">
+                    <label for="comment">Дополнительные комментарии:</label>
+                    <textarea id="comment" name="comment" placeholder="Дополнительные комментарии"></textarea>
+                    <div class="cart-total">
+                        <h3>Общая сумма: <span id="total-price" th:text="${totalPrice} + ' ₽'"></span></h3>
+                        <button class="btn" id="checkout-button">Оформить заказ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer id="footer">
+    <div class="container pad2">
+        <div class="row">
+            <div class="grid_4">
+                <address>
+                    <p class="icon1">Foody<br>ул. Студенческая, 14, Белгород, 3080010</p>
+                </address>
+            </div>
+            <div class="grid_4">
+                <p class="icon2">Телефон: +7 800 555 35 35<br>E-mail: <a href="#">foody@mail.ru</a></p>
+            </div>
+            <div class="grid_4">
+                <p><a class="f-logo" href="index.html">Foody</a> &copy; <span id="copyright-year">2025</span>
+                <div class="socials">
+                    <a href="#"><i class="fa fa-facebook"></i></a>
+                    <a href="#"><i class="fa fa-instagram"></i></a>
+                    <a href="#"><i class="fa fa-vk"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<script>
+    ymaps.ready(init);
+
+    function init() {
+        var myMap = new ymaps.Map('map', {
+            center: [55.75, 37.62],
+            zoom: 10
+        });
+
+        const findAddressButton = document.getElementById("findAddressButton");
+        const addressInput = document.getElementById("address");
+         const deliveryFormActions = document.querySelector(".delivery-form-actions");
+
+        findAddressButton.addEventListener("click", () => {
+            geocode(addressInput.value, myMap);
+        });
+
+          myMap.events.add('click', function(e) {
+            const coords = e.get('coords');
+            myMap.setCenter(coords);
+            const marker = new ymaps.Placemark(coords, {}, {});
+            myMap.geoObjects.removeAll();
+            myMap.geoObjects.add(marker);
+
+             document.getElementById("map-lat").value = coords[0];
+             document.getElementById("map-lng").value = coords[1];
+              reverseGeocode(coords, addressInput);
+             createSelectButton()
+
+           });
+          function createSelectButton() {
+
+                deliveryFormActions.innerHTML = `
+                  <button type="button" class="delivery-form-select-address" id="map-select-button">Выбрать место на карте</button>
+                `;
+
+             const selectAddressButton =  document.getElementById("map-select-button");
+
+              selectAddressButton.addEventListener("click", () => {
+              });
+         }
+
+        function geocode(address, myMap) {
+            ymaps.geocode(address).then(function (res) {
+                const firstGeoObject = res.geoObjects.get(0);
+                if (firstGeoObject) {
+                    const coords = firstGeoObject.geometry.getCoordinates();
+                    myMap.setCenter(coords);
+                     const marker = new ymaps.Placemark(coords, {}, {});
+                     myMap.geoObjects.removeAll();
+                     myMap.geoObjects.add(marker);
+                     document.getElementById("map-lat").value = coords[0];
+                     document.getElementById("map-lng").value = coords[1];
+                     reverseGeocode(coords, addressInput);
+                     createSelectButton()
+                } else {
+                    alert("Не удалось найти адрес.");
+                }
+            });
+        }
+
+         function reverseGeocode(coords, addressInput) {
+             ymaps.geocode(coords).then(function(res) {
+               const firstGeoObject = res.geoObjects.get(0);
+               if(firstGeoObject) {
+                   addressInput.value = firstGeoObject.getAddressLine();
+               }
+            });
+        }
+
+    }
+</script>
+<script>
+    function closeNotification(event) {
+        // Проверяем, был ли клик по самому элементу закрытия
+        if (event && event.target.classList.contains('notification-close')) {
+            event.stopPropagation(); // Останавливаем всплытие события
+        }
+        document.getElementById('notificationOverlay').style.display = 'none';
+    }
+
+    function viewOrderDetails() {
+        const orderIdElement = document.querySelector('#notificationOverlay .notification-content span');
+        if (orderIdElement) {
+            window.location.href = '/orders/' + orderIdElement.textContent;
+        }
+    }
+
+    // Автоматическое закрытие через 15 секунд
+    setTimeout(() => {
+        const overlay = document.getElementById('notificationOverlay');
+        if (overlay) overlay.style.display = 'none';
+
+        const errorBox = document.querySelector('.payment-error');
+        if (errorBox) errorBox.style.display = 'none';
+    }, 15000);
+
+    // Назначаем обработчики правильно
+    document.addEventListener('DOMContentLoaded', function() {
+        const closeBtn = document.querySelector('.notification-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeNotification();
+            });
+        }
+
+        const overlay = document.getElementById('notificationOverlay');
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeNotification();
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

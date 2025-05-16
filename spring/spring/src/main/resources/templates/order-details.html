@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Детали заказа</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/font-awesome.css">
+</head>
+<body>
+<!-- Header (такой же как в других страницах) -->
+<header>
+    <div class="container">
+        <div class="row">
+            <div class="grid_12">
+                <h1 class="logo"><a href="/"><img src="/images/logo.png" alt="FOOD DELIVERY"></a></h1>
+                <nav>
+                    <ul class="sf-menu">
+                        <li><a href="/">ГЛАВНАЯ</a></li>
+                        <li><a href="/menu">МЕНЮ</a></li>
+                        <li><a href="/cart">КОРЗИНА</a></li>
+                        <li><a href="/contacts">КОНТАКТЫ</a></li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </nav>
+                <hr class="header-border">
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Основное содержимое -->
+<main class="order-details-container">
+    <div class="order-header">
+        <h2>Заказ #<span th:text="${order.orderId}"></span></h2>
+        <span class="order-status order-status-paid" th:text="${order.status}"></span>
+    </div>
+
+    <div class="order-details-section">
+        <h4>Информация о заказе</h4>
+        <p><strong>Дата заказа:</strong>
+            <span th:text="${order.formattedDate}"></span>
+        </p>
+        <p><strong>Адрес доставки:</strong> <span th:text="${order.deliveryAddress}"></span></p>
+        <p><strong>Способ оплаты:</strong> <span th:text="${order.paymentMethod}"></span></p>
+        <p><strong>Курьер:</strong> <span th:text="${order.courier.name}"></span> (тел: <span th:text="${order.courier.phone}"></span>)</p>
+    </div>
+
+    <div class="order-details-section">
+        <h4>Состав заказа</h4>
+        <ul class="order-items-list">
+            <li class="order-item" th:each="item : ${order.orderItems}">
+                <span th:text="${item.product.name}"></span>
+                <span th:text="${item.quantity} + ' × ' + ${item.product.price} + ' ₽'"></span>
+                <span th:text="${item.quantity * item.product.price} + ' ₽'"></span>
+            </li>
+        </ul>
+        <div class="order-total">
+            Итого: <span th:text="${order.totalPrice} + ' ₽'"></span>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="/menu" class="btn">Вернуться в меню</a>
+    </div>
+</main>
+
+<!-- Footer (такой же как в других страницах) -->
+<footer id="footer">
+    <div class="container pad2">
+        <div class="row">
+            <div class="grid_4">
+                <address>
+                    <p class="icon1">Foody<br>ул. Студенческая, 14, Белгород, 3080010</p>
+                </address>
+            </div>
+            <div class="grid_4">
+                <p class="icon2">Телефон: +7 800 555 35 35<br>E-mail: <a href="#">foody@mail.ru</a></p>
+            </div>
+            <div class="grid_4">
+                <p><a class="f-logo" href="index.html">Foody</a> &copy; <span id="copyright-year">2025</span>
+                <div class="socials">
+                    <a href="#"><i class="fa fa-facebook"></i></a>
+                    <a href="#"><i class="fa fa-instagram"></i></a>
+                    <a href="#"><i class="fa fa-vk"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

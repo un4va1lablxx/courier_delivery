@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация</title>
+  <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="auth-container">
+  <h2>Регистрация</h2>
+  <form class="auth-form" action="/register" method="post" th:object="${customer}">
+    <div class="input-group">
+      <label for="name">Имя</label>
+      <input type="text" id="name" th:field="*{name}"  placeholder="Введите ваше имя" required>
+    </div>
+    <div class="input-group">
+      <label for="phone">Номер телефона</label>
+      <input type="tel" id="phone" th:field="*{phone}" placeholder="Введите номер телефона" required>
+    </div>
+    <div class="input-group">
+      <label for="email">Электронная почта</label>
+      <input type="email" id="email" th:field="*{email}" placeholder="Введите адрес электронной почты" required>
+    </div>
+    <div class="input-group">
+      <label for="birthdate">Дата рождения</label>
+      <input type="date" id="birthdate" th:field="*{birthdate}" required>
+    </div>
+    <div class="input-group">
+      <label for="login">Логин</label>
+      <input type="text" id="login" th:field="*{login}" placeholder="Введите логин" required>
+    </div>
+    <div class="input-group">
+      <label for="password">Пароль</label>
+      <input type="password" id="password" th:field="*{password}" placeholder="Введите пароль" required>
+    </div>
+    <div class="input-group">
+      <label for="confirmPassword">Подтвердите пароль</label>
+      <input type="password" id="confirmPassword" th:field="*{confirmPassword}" placeholder="Повторите пароль" required>
+    </div>
+    <button type="submit" class="auth-button">Зарегистрироваться</button>
+    <div class="form-footer">
+      <p>Уже есть аккаунт? <a href="/login">Войти</a></p>
+    </div>
+
+  </form>
+</div>
+</body>
+</html>

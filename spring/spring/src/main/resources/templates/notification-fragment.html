@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Уведомление</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div th:fragment="notification">
+<div th:if="${showSuccessNotification}" class="notification-overlay" id="notificationOverlay">
+    <div class="notification-box">
+        <span class="notification-close" onclick="closeNotification()">×</span>
+        <div class="notification-title">Заказ успешно оформлен!</div>
+        <div class="notification-content">
+            Ваш заказ #<span th:text="${orderId}"></span> принят в обработку.<br>
+            Мы уже начали его готовить для вас.
+        </div>
+        <div class="notification-buttons">
+            <button class="notification-btn" onclick="closeNotification()">Продолжить покупки</button>
+            <button class="notification-btn" onclick="viewOrderDetails()">Подробности заказа</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+    function closeNotification() {
+        document.getElementById('notificationOverlay').style.display = 'none';
+    }
+
+    function viewOrderDetails() {
+        window.location.href = '/orders/' + document.querySelector('#notificationOverlay span[th\\:text="${orderId}"]').textContent;
+    }
+
+    // Автоматическое закрытие через 10 секунд
+    setTimeout(() => {
+        const overlay = document.getElementById('notificationOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }, 10000);
+</script>
+</body>
+</html>
